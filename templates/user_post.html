@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block content %}
+  <h1 class="mb-4">Posts by {{ username }} ({{ posts|length }})</h1>
+  {% for post in posts %}
+    <article class="content-section py-3 px-4 mb-4">
+      <small class="text-body-secondary">{{ post.date_posted }}</small>
+      <h2 class="article-title">
+        <a href="{{ url_for('post_page', post_id=post.id) }}">{{ post.title }}</a>
+      </h2>
+      <p class="article-content">{{ post.content }}</p>
+    </article>
+  {% endfor %}
+{% endblock content %}

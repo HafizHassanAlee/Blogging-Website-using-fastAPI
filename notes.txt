@@ -1,0 +1,123 @@
+VID No. 1:
+HTMLResponse
+
+from fastapi.responses import HTMLResponse
+
+@app.get("/posts", include_in_schema=False, response_class=HTMLResponse)
+def read_posts():
+    return f"<h1>{posts[0]['title']}</h1>"
+
+it is used to return the value in HTML format and allow to add HTML things (such as tag <h1> etc. ) in 
+the return statement.
+
+
+
+
+
+
+
+
+
+VID No. 2
+JinjaTemplates
+
+1) in imports write
+from fastapi.templating import Jinja2Templates
+
+2) in code usually just after app = fastapi write templates 
+templates = Jinja2Templates(directory="templates").   it is telling to take templates from jinja and directory is file's name.
+
+3) in link where you want to call template write the given code 
+templates.TemplateResponse(request, "posts.html", {"posts": posts}). from templates give return in TemplateResponse format
+                                                                            in brackets () write request than the template name. if yu want to pass data to 
+                                                                            template write it after template name.
+Example:
+@app.get("/posts", include_in_schema=False)
+def read_posts(request: Request):
+    return templates.TemplateResponse(request, "posts.html", {"posts": posts})
+
+4) for writing code of python in templates use %age SIgns before and after the Code.
+Example
+{% extends "layout.html" %}
+{% block content %}
+  <article class="content-section py-3 px-4 mb-4">
+    <h1>
+      <a class="article-title" href="#">Oops... {{ status_code }} Error</a>
+    </h1>
+    <p class="article-content">{{ message }}</p>
+  </article>
+{% endblock content %}
+
+
+
+
+
+
+
+
+
+
+VID No.3)
+1)_JSONResponse
+  from fastapi.responses import JSONResponse
+  What is it?
+
+  JSONResponse lets you manually return a JSON response from your API.
+
+  Normally, FastAPI automatically converts dictionaries into JSON:
+
+  @app.get("/student")
+  def student():
+      return {"name": "Hassan", "age": 18}
+
+2) What is HTTPException?
+
+It is used when you want to tell the client:
+
+"Something went wrong with this HTTP request."
+
+3) starlette
+
+
+
+
+
+
+VID No. 4)
+  schemas.py
+it is used to add the data which come in and go out from api. it can say that contract between apis and dttabase, backend which data can store and which can retrieve.
+
+
+
+
+
+
+
+VID No. 5)
+a) session : it is a transaction from database. every request has its own session.
+
+b) Mapped = What type of data is this?
+mapped_column = This is a database column.
+relationship = These two database models are connected.
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column()
+    posts: Mapped[list["Post"]] = relationship()
+
+posts: Mapped[list[Post]] = relationship(back_populates="author")
+c) back_populates : it allows us to get alll things of user like to get all posts.
+
+
+d) Annotated, Depends
+The line to memorize
+user: Annotated[User, Depends(get_current_user)]
+
+Read it in English as:
+
+"The user should be a User, and FastAPI should get it by calling get_current_user."
+
+Once this sentence makes sense to you, Annotated + Depends will stop looking mysterious.
