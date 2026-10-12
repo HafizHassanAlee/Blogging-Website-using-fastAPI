@@ -121,3 +121,16 @@ Read it in English as:
 "The user should be a User, and FastAPI should get it by calling get_current_user."
 
 Once this sentence makes sense to you, Annotated + Depends will stop looking mysterious.
+
+
+
+
+
+
+
+
+
+VID No. 6)
+Put : means to replace everything, e.g. it updates the all record with all records details.
+
+patch : it updates only one  thing i.e if you want to update the title section it only update it and other things remain same.
