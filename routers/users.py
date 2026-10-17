@@ -61,54 +61,62 @@ async def create_user(user: UserCreate, db: Annotated[AsyncSession, Depends(get_
     return new_user
 
 
+
 @router.post("/token", response_model=Token)
 async def login_for_access_token(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends],
-    db: Annotated[AsyncSession,Depends(get_db)],
-    ):
-    #look up user by email (case sensitive)
-    # Note: Oauth2passwordRequestForm uses "username" field but we treat it as email
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    # Find the user by email.
     result = await db.execute(
         select(models.User).where(
-            func.lower(models.User.email) == form_data.username.lower(),
-        ),
+            func.lower(models.User.email) == form_data.username.lower()
+        )
     )
     user = result.scalars().first()
 
-    # verify user exist and password connect
-    # Don't repeat which one failed (Security best Practice)
-
-    if not user or not verify_password(form_data.password, user.password_hash):
+    # Check the user's credentials.
+    if not user or not verify_password(
+        form_data.password, user.password_hash
+    ):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="incorresct email or password",
-            headers={"WWW-Authenticate":"Bearer"},
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
-        # create access token with user_id a subject
-        access_token_expires = timedelta(minutes=settings.access_token)
-        access_token = create_access_token(
-            data:str{(user.id)},
-            expires_delta=access_token_expires,
-        )
-        return Token(access_token=access_token, token_type="bearer")
+    # Create an access token for a valid user.
+    access_token_expires = timedelta(
+        minutes=settings.access_token_expire_minutes
+    )
+
+    access_token = create_access_token(
+        data={"sub": str(user.id)},
+        expires_delta=access_token_expires,
+    )
+
+    return Token(
+        access_token=access_token,
+        token_type="bearer",
+    )
+
 
 
 @router.get("/me", response_model=UserPrivate)
 async def get_current_user(
-    token:Annoted[str, Depends(oauth2_scheme)],
-    db: Annoted[AsyncSession, Depends(get_db)],
+    token:Annotated[str, Depends(oauth2_scheme)],
+    db: Annotated[AsyncSession, Depends(get_db)],
 ):
-   """ get the current authenticated user. """
-   user_id = verify_access_token(token)
-   if user_id is None:
+    """ get the current authenticated user. """
+    user_id = verify_access_token(token)
+    if user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail = "Invlid or expired token",
             headers= {"WWW-Authenticate":"Bearer"}
         )
 
-        # validate user_id is a valid integer (defense against maformed JWT)
+    # validate user_id is a valid integer (defense against maformed JWT)
     try:
         user_id_int = int(user_id)
 
@@ -130,7 +138,6 @@ async def get_current_user(
             detail = "Invlid or expired token",
             headers= {"WWW-Authenticate":"Bearer"}
         )
-
     return user
 
 
@@ -143,12 +150,6 @@ async def get_user(user_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
         return user
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-# get current user
-@router.get("/me", response_model=UserPrivate)
-async def get_current_user(
-    token:Annotated[str, Depends(oauth2_scheme)],
-    db: Annotated[AsyncSession, Depends(get_db)],
-    ):
 
 @router.get("/{user_id}/posts", response_model=list[PostResponse])
 async def get_user_posts(user_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
@@ -181,8 +182,7 @@ async def update_user(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-    if user_update.username is not None 
-    and user_update.username.lower() != user.username.lower():
+    if user_update.username is not None and user_update.username.lower() != user.username.lower():
         result = await db.execute(
             select(models.User).where(func.lower(models.User.username) == user_update.username.lower()),
         )
