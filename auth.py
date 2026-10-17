@@ -6,13 +6,14 @@ from pwdlib import PasswordHash
 
 from config import settings
 
-from typing import Annoted
+from typing import Annotated
 from fastapi import Depends,HTTPException,status
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import models
+from fastapi import APIRouter
 from config import settings
 from database import get_db
 
